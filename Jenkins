@@ -1,0 +1,22 @@
+pipeline{
+  agent any
+  stages{
+     stage("Maven Build"){
+       steps{
+            sh "mvn clean package"
+            sh "mv https://get.jenkins.io/war-stable/latest/jenkins.war target/jenkins.war"
+        }
+    }
+     stage("deploy-dev"){
+       steps{
+          sshagent(['deploy']) {
+          sh """
+          scp -rp target/jenkins.war demo@13.126.162.114:/home/demo/apache-tomcat-9.0.63/webapps/
+          ssh demo@13.126.162.114 /home/demo/apache-tomcat-9.0.63/bin/shutdown.sh
+          ssh demo@13.126.162.114 /home/demo/apache-tomcat-9.0.63/bin/startup.sh
+            """
+          }
+        }
+    }
+    }
+}
